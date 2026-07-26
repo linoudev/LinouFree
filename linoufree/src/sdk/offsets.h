@@ -3,44 +3,42 @@
 
 namespace offsets {
     inline uintptr_t UWorld = 0x1B2439A0;
-    inline uintptr_t UWorldXorKey = 0x012F546CULL; //CE NEGRO A LA PIRE DECRYPTION UWORLD EXISTANTE #NOTMYTYPE J'AI PAS CHANGER L'OFFSETS #JSUISUNFLEMMARD
+    inline uintptr_t UWorldXorKey = 0x012F546CULL;
     inline uintptr_t OwningGameInstance = 0x250;
-    inline uintptr_t GameState = 0x1D8;  // Chang�
-    inline uintptr_t PlayerArray = 0x288;  // Chang�
+    inline uintptr_t GameState = 0x1D8;  
+    inline uintptr_t PlayerArray = 0x288;  
 
     inline uintptr_t LocalPlayers = 0x38;
     inline uintptr_t PlayerController = 0x30;
-    inline uintptr_t AcknowledgedPawn = 0x318;  // Chang�
+    inline uintptr_t AcknowledgedPawn = 0x318; 
     inline uintptr_t PlayerCameraManager = 0x328;
     inline uintptr_t ControlRotation = 0x2E8;
     inline uintptr_t NetConnection = 0x4A8;
-    // ── Visibility Check Offsets ──
-    inline uintptr_t LastRenderTime                     = 0x530;
-    inline uintptr_t LastRenderTimeOnScreen             = 0x32C;
-    inline uintptr_t LastSubmitTime                     = 0x338;
-    inline uintptr_t VisTolerance                       = 0x330;
-    inline uintptr_t VisibilityProxy                    = 0xB0;
-    inline uintptr_t VisProxyLastSubmit                 = 0x7B8;
-    inline uintptr_t VisProxyLastRenderTime             = 0x7DC;
+    inline uintptr_t LastRenderTime = 0x530;
+    inline uintptr_t LastRenderTimeOnScreen = 0x32C;
+    inline uintptr_t LastSubmitTime = 0x338;
+    inline uintptr_t VisTolerance = 0x330;
+    inline uintptr_t VisibilityProxy = 0xB0;
+    inline uintptr_t VisProxyLastSubmit = 0x7B8;
+    inline uintptr_t VisProxyLastRenderTime = 0x7DC;
 
-    inline uintptr_t PawnPrivate = 0x2E8;  // Chang�
-    inline uintptr_t bIsABot = 0x27A;  // Chang�
-    inline uintptr_t Platform = 0x400;  // Chang�
-    inline uintptr_t PlayerName = 0x9C8;  // Chang�
+    inline uintptr_t PawnPrivate = 0x2E8; 
+    inline uintptr_t bIsABot = 0x27A;  
+    inline uintptr_t Platform = 0x400;  
+    inline uintptr_t PlayerName = 0x9C8;  
     inline uintptr_t PlayerNamePrivate = 0x308;
 
-    inline uintptr_t PlayerState = 0x290;  // Chang�
-    inline uintptr_t TeamIndex = 0xF31;  // Chang�
+    inline uintptr_t PlayerState = 0x290;  
+    inline uintptr_t TeamIndex = 0xF31; 
     inline uintptr_t InitialSquadSize = 0x16B8;
-    inline uintptr_t bIsDying = 0x720;  // Chang�
-    inline uintptr_t bIsDBNO = 0x849;  // Chang�
+    inline uintptr_t bIsDying = 0x720;  
+    inline uintptr_t bIsDBNO = 0x849; 
 
     inline uintptr_t TargetSourceOffset = 0x1018;
     inline uintptr_t TargetSourceOffsetWhileTargeting = 0x1048;
     inline uintptr_t TargetSourceOffsetWhileCrouched = 0x1030;
     inline uintptr_t bTraceThroughWorld = 0xff9;
 
-    // Health (vous pouvez les mettre � jour depuis votre SDK)
 	inline uintptr_t Health = 0xCD4;
     inline uintptr_t MaxHealth = 0xCD8;
 
@@ -70,14 +68,14 @@ namespace offsets {
 
     inline uintptr_t HabaneroComponent                  = 0x918;
     inline uintptr_t RankedProgress                     = 0xD8;
-    inline uintptr_t killscore                          = 0xF48;   // Chang�
+    inline uintptr_t killscore                          = 0xF48;
     inline uintptr_t RebootCount                        = 0x15AC;
     inline uintptr_t TargetedFortPawn                   = 0x1630;
 
-    inline uintptr_t Spectators                         = 0xA90;     // FortPlayerStateZone::Spectators (confirmed 41.20, was 0xA70)
+    inline uintptr_t Spectators                         = 0xA90;     // FortPlayerStateZone::Spectators
     inline uintptr_t SpectatorArray                     = 0x48;
 
-    inline uintptr_t PersistentLevel                    = 0x38;      // UWorld::PersistentLevel (confirmed 41.20)
+    inline uintptr_t PersistentLevel                    = 0x38;
     inline uintptr_t Levels                             = 0x1F0;   
     inline uintptr_t SeasonLevelUIDisplay               = 0xF4C; 
     inline uintptr_t AActor = 0x38;
@@ -85,25 +83,18 @@ namespace offsets {
     inline uintptr_t Tier = 0xaa;
     inline uintptr_t ItemName = 0x38;
 
-    // ── Exploits Offsets ──
-    // FOV Changer
     inline uintptr_t FOVMinimum                     = 0x2158;
     inline uintptr_t FOVMaximum                     = 0x215C;
-    // Insta Reload
     inline uintptr_t PlayRate                       = 0xAB4;
-    inline uintptr_t bIsReloading                   = 0x381;
-    // Silent Aim
+    inline uintptr_t bIsReloading                   = 0x381; // bIsReloadingWeapon in AFortWeapon :D
     inline uintptr_t CameraManager                  = 0x328;
     inline uintptr_t ViewPitch                      = 0x28AC;
     inline uintptr_t ViewYaw                        = 0x28B4;
     inline uintptr_t AimPitchMin                    = 0x1DD8;
     inline uintptr_t AimPitchMax                    = 0x1DDC;
-    // Player Size
     inline uintptr_t CapsuleComponent               = 0x300;
     inline uintptr_t RelativeScale3D                = 0x170;
-    // No Spread
     inline uintptr_t WeaponSpread                   = 0x68;
-    // Rapid Fire
     inline uintptr_t WeaponRampingData              = 0x21D8;
 }
 
