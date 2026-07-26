@@ -1,11 +1,10 @@
-﻿#include <Windows.h>
+#include <Windows.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <cstdint>
 #include "memory/driver.h"
 #include "render/render.h"
-#include "auth/auth.h"
 #include "colors.h"
 
 int load();
@@ -15,8 +14,6 @@ int main() {
         system("cls");
         load();
 }
-
-    
 
 int load() {
 
@@ -56,7 +53,6 @@ int load() {
     }
     std::cout << "Base address: 0x" << std::hex << memory.BaseAddress << std::dec << std::endl;
 
-
     std::cout << "Press insert to toggle menu" << std::endl;
 
     if (!overlay::Create()) {
@@ -69,9 +65,3 @@ int load() {
     return 0;
 }
 
-    
-
-    
-    
-    
-    

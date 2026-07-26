@@ -3,11 +3,9 @@
 #include <cmath>
 #include <numbers>
 
-// screen dimensions
 inline int Width = GetSystemMetrics(SM_CXSCREEN);
 inline int Height = GetSystemMetrics(SM_CYSCREEN);
 
-// 2d vector for screen positions
 class Vector2 {
 public:
     double x, y;
@@ -15,41 +13,36 @@ public:
     Vector2(double _x, double _y) : x(_x), y(_y) {}
 };
 
-// 3d vector for world positions
 class Vector3 {
 public:
     double x, y, z;
-    
+
     Vector3() : x(0), y(0), z(0) {}
     Vector3(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-    
-    double Dot(const Vector3& v) const { 
-        return x * v.x + y * v.y + z * v.z; 
+
+    double Dot(const Vector3& v) const {
+        return x * v.x + y * v.y + z * v.z;
     }
-    
-    Vector3 operator-(const Vector3& v) const { 
-        return Vector3(x - v.x, y - v.y, z - v.z); 
+
+    Vector3 operator-(const Vector3& v) const {
+        return Vector3(x - v.x, y - v.y, z - v.z);
     }
 };
 
-// plane with W component
-struct FPlane : Vector3 { 
-    double W = 0; 
+struct FPlane : Vector3 {
+    double W = 0;
 };
 
-// quaternion for rotations
-struct FQuat { 
-    double x, y, z, w; 
+struct FQuat {
+    double x, y, z, w;
 };
 
-// camera info
-struct Camera { 
+struct Camera {
     Vector3 Location;
     Vector3 Rotation;
-    float FieldOfView; 
+    float FieldOfView;
 };
 
-// 4x4 matrix
 class FMatrix {
 public:
     double m[4][4];
@@ -65,7 +58,6 @@ public:
     }
 };
 
-// transform with rotation, translation, scale
 struct FTransform {
     FQuat Rotation;
     Vector3 Translation;
@@ -74,14 +66,13 @@ struct FTransform {
     uint8_t pad2[8];
 
     FMatrix ToMatrixWithScale() const {
-        // handle zero scale
+
         Vector3 S(
             Scale3D.x ? Scale3D.x : 1,
             Scale3D.y ? Scale3D.y : 1,
             Scale3D.z ? Scale3D.z : 1
         );
 
-        // quaternion to matrix conversion
         double x2 = Rotation.x * 2, y2 = Rotation.y * 2, z2 = Rotation.z * 2;
         double xx2 = Rotation.x * x2, yy2 = Rotation.y * y2, zz2 = Rotation.z * z2;
         double yz2 = Rotation.y * z2, wx2 = Rotation.w * x2;
@@ -113,7 +104,6 @@ struct FTransform {
     }
 };
 
-// unreal tarray
 template<class T>
 class tarray {
 public:
@@ -122,7 +112,6 @@ public:
     int32_t max = 0;
 };
 
-// multiply two matrices
 inline D3DMATRIX MatrixMultiplication(D3DMATRIX m1, D3DMATRIX m2) {
     D3DMATRIX o;
     o._11 = m1._11*m2._11 + m1._12*m2._21 + m1._13*m2._31 + m1._14*m2._41;
@@ -144,7 +133,6 @@ inline D3DMATRIX MatrixMultiplication(D3DMATRIX m1, D3DMATRIX m2) {
     return o;
 }
 
-// create rotation matrix from euler angles
 inline D3DMATRIX Matrix(Vector3 rot) {
     float p = static_cast<float>(rot.x) * std::numbers::pi_v<float> / 180.0f;
     float y = static_cast<float>(rot.y) * std::numbers::pi_v<float> / 180.0f;

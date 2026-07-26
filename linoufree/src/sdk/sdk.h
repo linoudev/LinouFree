@@ -26,7 +26,7 @@ inline Vector3 GetBoneWithRotation(DWORD_PTR mesh, int boneId, const FTransform*
 
     int32_t activeTransforms = memory.read<int32_t>(mesh + offsets::BoneArray + 0x48) * 0x10;
     auto boneArray = memory.read<tarray<FTransform>>(mesh + offsets::BoneArray + activeTransforms);
-    
+
     auto boneTransform = memory.read<FTransform>((uintptr_t)boneArray.data + boneId * 0x60);
     auto componentToWorld = cachedComponentToWorld
         ? *cachedComponentToWorld
@@ -76,7 +76,6 @@ inline Vector2 ProjectWorldToScreen(Vector3 worldPos) {
     return Vector2(Width / 2 + TTransform.x * ((Width / 2.0) / FovRadians) / TTransform.z, Height / 2 - TTransform.y * ((Width / 2.0) / FovRadians) / TTransform.z);
 }
 
-// Check if a world position is in front of the camera (not behind the player)
 inline bool IsInFrontOfCamera(const Vector3& worldPos) {
     auto rotMatrix = Matrix(vCamera.Rotation);
     Vector3 axisX(rotMatrix.m[0][0], rotMatrix.m[0][1], rotMatrix.m[0][2]);

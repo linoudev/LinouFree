@@ -13,27 +13,22 @@
 #include "../util/settings.h"
 #include "esp.h"
 
-// forward declare
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-// overlay hwnd (declared early so menu can use it)
 inline HWND g_overlayHwnd = nullptr;
 
-// dx11 stuff
 namespace d3d {
     inline ID3D11Device* pDevice = nullptr;
     inline ID3D11DeviceContext* pContext = nullptr;
     inline IDXGISwapChain* pSwapChain = nullptr;
     inline ID3D11RenderTargetView* pRenderTarget = nullptr;
 
-    // setup imgui style
     inline void ApplyStyle() {
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontDefault();
         ImGui::StyleColorsDark();
     }
 
-    // initialize directx
     inline bool Init(HWND hwnd) {
         DXGI_SWAP_CHAIN_DESC sd = {};
         sd.BufferCount = 2;
@@ -55,13 +50,11 @@ namespace d3d {
             nullptr, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pDevice, &level, &pContext)))
             return false;
 
-        // create render target
         ID3D11Texture2D* pBackBuffer;
         pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
         pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
         pBackBuffer->Release();
 
-        // init imgui
         ImGui::CreateContext();
         ImGui_ImplWin32_Init(hwnd);
         ImGui_ImplDX11_Init(pDevice, pContext);
@@ -70,7 +63,6 @@ namespace d3d {
         return true;
     }
 
-    // cleanup
     inline void Shutdown() {
         ImGui_ImplDX11_Shutdown();
         ImGui_ImplWin32_Shutdown();
@@ -83,7 +75,6 @@ namespace d3d {
     }
 }
 
-// helper to get key name from virtual key code
 inline const char* GetKeyName(int vk) {
     switch (vk) {
         case VK_LBUTTON: return "Left Mouse";
@@ -128,7 +119,6 @@ inline const char* GetKeyName(int vk) {
     }
 }
 
-// menu colors (popstar-inspired)
 namespace colors {
     inline ImColor bg = ImColor(16, 16, 18, 255);
     inline ImColor sidebar = ImColor(14, 14, 16, 255);
@@ -140,30 +130,29 @@ namespace colors {
     inline ImColor footer = ImColor(12, 12, 14, 255);
 }
 
-// menu rendering
 namespace menu {
     inline bool wasMenuOpen = false;
     inline int currentTab = 0;
 
     inline void ApplyModernStyle() {
         ImGuiStyle& s = ImGui::GetStyle();
-        
+
         s.WindowRounding = 10.0f;
         s.FrameRounding = 6.0f;
         s.GrabRounding = 4.0f;
         s.ChildRounding = 6.0f;
         s.PopupRounding = 6.0f;
         s.ScrollbarRounding = 4.0f;
-        
+
         s.WindowPadding = ImVec2(12, 12);
         s.FramePadding = ImVec2(8, 5);
         s.ItemSpacing = ImVec2(8, 8);
         s.ItemInnerSpacing = ImVec2(6, 6);
-        
+
         s.WindowBorderSize = 0.0f;
         s.FrameBorderSize = 0.0f;
         s.ScrollbarSize = 10.0f;
-        
+
         ImVec4* c = s.Colors;
         c[ImGuiCol_WindowBg] = ImVec4(0.063f, 0.063f, 0.071f, 1.0f);
         c[ImGuiCol_ChildBg] = ImVec4(0.055f, 0.055f, 0.063f, 1.0f);
@@ -190,21 +179,20 @@ namespace menu {
     inline void TabButton(const char* label, int tabIndex) {
         ImVec4 activeCol = ImVec4(0.608f, 0.588f, 0.859f, 1.0f);
         ImVec4 inactiveCol = ImVec4(0.4f, 0.4f, 0.43f, 1.0f);
-        
+
         bool isActive = (currentTab == tabIndex);
-        
+
         ImGui::PushStyleColor(ImGuiCol_Text, isActive ? activeCol : inactiveCol);
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.05f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.1f));
-        
+
         if (ImGui::Button(label, ImVec2(90, 30))) {
             currentTab = tabIndex;
         }
-        
+
         ImGui::PopStyleColor(4);
-        
-        // Draw underline for active tab
+
         if (isActive) {
             ImVec2 min = ImGui::GetItemRectMin();
             ImVec2 max = ImGui::GetItemRectMax();
@@ -224,12 +212,10 @@ namespace menu {
             styleApplied = true;
         }
 
-        // toggle menu with INSERT
         if (GetAsyncKeyState(VK_INSERT) & 1) {
             showMenu = !showMenu;
         }
 
-        // toggle click-through when menu state changes
         if (showMenu != wasMenuOpen) {
             wasMenuOpen = showMenu;
             LONG style = GetWindowLong(g_overlayHwnd, GWL_EXSTYLE);
@@ -244,19 +230,17 @@ namespace menu {
         if (!showMenu) return;
 
         ImGui::SetNextWindowSize(ImVec2(420, 380), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##MainMenu", nullptr, 
-            ImGuiWindowFlags_NoTitleBar | 
-            ImGuiWindowFlags_NoCollapse | 
+        ImGui::Begin("##MainMenu", nullptr,
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoCollapse |
             ImGuiWindowFlags_NoScrollbar);
-        
+
         auto draw = ImGui::GetWindowDrawList();
         ImVec2 pos = ImGui::GetWindowPos();
         ImVec2 size = ImGui::GetWindowSize();
-        
-        // Header
+
         draw->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + 50), IM_COL32(14, 14, 16, 255), 10.0f, ImDrawFlags_RoundCornersTop);
-        
-        // Title
+
         ImGui::SetCursorPos(ImVec2(15, 15));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
         ImGui::Text("Linou Free");
@@ -265,8 +249,7 @@ namespace menu {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.59f, 1.0f));
         ImGui::Text("");
         ImGui::PopStyleColor();
-        
-        // Tab buttons
+
         ImGui::SetCursorPos(ImVec2(size.x - 300, 10));
         TabButton("Aimbot", 0);
         ImGui::SameLine();
@@ -275,16 +258,14 @@ namespace menu {
         TabButton("Misc", 2);
         ImGui::SameLine();
         TabButton("Exploits", 3);
-        
-        // Separator line
+
         draw->AddRectFilled(ImVec2(pos.x, pos.y + 50), ImVec2(pos.x + size.x, pos.y + 51), IM_COL32(255, 255, 255, 8));
-        
-        // Content area
+
         ImGui::SetCursorPos(ImVec2(15, 60));
         ImGui::BeginChild("##Content", ImVec2(size.x - 30, size.y - 100), false);
-        
+
         if (currentTab == 0) {
-            // Aimbot Tab
+
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
             ImGui::Text("Aimbot Settings");
@@ -292,18 +273,18 @@ namespace menu {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             ImGui::Checkbox("Enable Aimbot", &aimbotEnabled);
-            
+
             if (aimbotEnabled) {
                 ImGui::Spacing();
-                
+
                 ImGui::Checkbox("Visible Only", &aimbotVisibleOnly);
                 ImGui::Checkbox("Lock Target", &aimbotLockTarget);
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("Lock onto target until button release or target dies");
                 }
-                
+
                 if (aimbotLockTarget) {
                     ImGui::Spacing();
                     ImGui::PushItemWidth(100);
@@ -314,18 +295,18 @@ namespace menu {
                     if (aimbotTargetPlayerId < -1) aimbotTargetPlayerId = -1;
                     ImGui::PopItemWidth();
                 }
-                
+
                 ImGui::Checkbox("Draw FOV Circle", &drawFovCircle);
-                
+
                 ImGui::Spacing();
                 ImGui::Spacing();
-                
+
                 ImGui::SliderFloat("FOV Radius", &aimbotFov, 20.0f, 400.0f, "%.0f px");
                 ImGui::SliderFloat("Smoothing", &aimbotSmooth, 0.1f, 20.0f, "%.1f");
-                
+
                 ImGui::Spacing();
                 ImGui::Spacing();
-                
+
                 ImGui::Spacing();
                 if (!waitingForKey) {
                     char keyLabel[64];
@@ -352,7 +333,7 @@ namespace menu {
             }
         }
         else if (currentTab == 1) {
-            // Visuals Tab
+
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
             ImGui::Text("ESP Settings");
@@ -360,26 +341,26 @@ namespace menu {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             ImGui::Checkbox("Box ESP", &boxEsp);
             ImGui::Checkbox("Bone ESP", &boneEsp);
             ImGui::Checkbox("Snaplines", &snaplines);
             ImGui::Checkbox("Show Player ID", &showPlayerId);
             ImGui::Checkbox("Show Distance", &showDistance);
             ImGui::Checkbox("Show Platform", &showPlatform);
-            
+
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
             ImGui::Text("Radar Settings");
             ImGui::PopStyleColor();
             ImGui::Spacing();
-            
+
             ImGui::Checkbox("Enable Radar", &radarEnabled);
             if (radarEnabled) {
-                // Different label/ID to avoid ImGui ID collision with ESP distance checkbox
+
                 ImGui::Checkbox("Radar Distance", &radarDistance);
                 ImGui::Checkbox("Rotated Orientation", &radarRotationMode);
                 ImGui::Checkbox("Show Grid", &radarGrid);
@@ -387,7 +368,7 @@ namespace menu {
                 if (radarLineOfSight) {
                     ImGui::Checkbox("Filled LOS", &radarLosFill);
                 }
-                
+
                 ImGui::Spacing();
                 ImGui::SliderFloat("Opacity", &radarOpacity, 0.0f, 255.0f, "%.0f");
                 ImGui::SliderInt("Position X", &radarPositionX, 0, Width);
@@ -398,16 +379,16 @@ namespace menu {
                     ImGui::SliderInt("Grid Divisions", &radarGridDivisions, 2, 20);
                 }
             }
-            
+
             ImGui::Spacing();
             ImGui::Spacing();
-            
+
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.59f, 1.0f));
             ImGui::TextWrapped("Green = Visible, Red = Player, Yellow = Bot");
             ImGui::PopStyleColor();
         }
         else if (currentTab == 2) {
-            // Misc Tab
+
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
             ImGui::Text("Misc Settings");
@@ -415,21 +396,21 @@ namespace menu {
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             ImGui::Checkbox("VSync", &vsyncEnabled);
             if (ImGui::IsItemHovered()) {
                 ImGui::SetTooltip("Enable vertical sync (limits FPS to monitor refresh rate)");
             }
-            
+
             ImGui::Checkbox("Show FPS Counter", &showFpsCounter);
-            
+
             if (showFpsCounter) {
                 ImGui::Spacing();
                 ImGui::ColorEdit4("FPS Color", fpsColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
             }
         }
         else if (currentTab == 3) {
-            // Exploits Tab
+
             ImGui::Spacing();
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
             ImGui::Text("Exploits");
@@ -467,24 +448,21 @@ namespace menu {
                 ImGui::PopItemWidth();
             }
         }
-        
+
         ImGui::EndChild();
-        
-        // Footer
+
         draw->AddRectFilled(ImVec2(pos.x, pos.y + size.y - 30), ImVec2(pos.x + size.x, pos.y + size.y), IM_COL32(12, 12, 14, 255), 10.0f, ImDrawFlags_RoundCornersBottom);
         draw->AddRectFilled(ImVec2(pos.x, pos.y + size.y - 31), ImVec2(pos.x + size.x, pos.y + size.y - 30), IM_COL32(255, 255, 255, 8));
-        
-        // Footer text
+
         ImGui::SetCursorPos(ImVec2(15, size.y - 23));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.45f, 0.5f, 1.0f));
         ImGui::Text("Press INSERT to toggle menu");
         ImGui::PopStyleColor();
-        
+
         ImGui::End();
     }
 }
 
-// overlay window
 namespace overlay {
     inline WNDCLASSEX wc = {};
 
@@ -500,7 +478,6 @@ namespace overlay {
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }
 
-    // create transparent overlay window
     inline bool Create() {
         wc.cbSize = sizeof(WNDCLASSEX);
         wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -519,10 +496,8 @@ namespace overlay {
 
         if (!g_overlayHwnd) return false;
 
-        // make window transparent
         SetLayeredWindowAttributes(g_overlayHwnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
-        
-        // extend frame for aero
+
         MARGINS margin = { -1 };
         DwmExtendFrameIntoClientArea(g_overlayHwnd, &margin);
 
@@ -533,35 +508,32 @@ namespace overlay {
     }
 }
 
-// FPS counter
 namespace fps {
     inline void Draw() {
         if (!showFpsCounter) return;
-        
+
         auto draw = ImGui::GetBackgroundDrawList();
         float fps = ImGui::GetIO().Framerate;
-        
+
         char fpsText[32];
         snprintf(fpsText, sizeof(fpsText), "FPS: %.0f", fps);
-        
+
         float x = 10.0f;
         float y = 10.0f;
-        
+
         ImU32 textColor = IM_COL32(
             (int)(fpsColor[0] * 255),
             (int)(fpsColor[1] * 255),
             (int)(fpsColor[2] * 255),
             (int)(fpsColor[3] * 255)
         );
-        
-        // Draw shadow
+
         draw->AddText(ImVec2(x + 1, y + 1), IM_COL32(0, 0, 0, 255), fpsText);
-        // Draw text
+
         draw->AddText(ImVec2(x, y), textColor, fpsText);
     }
 }
 
-// main render loop
 inline void RenderLoop() {
     MSG msg = {};
     LARGE_INTEGER freq, last;
@@ -574,24 +546,18 @@ inline void RenderLoop() {
             continue;
         }
 
-        // start frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        // draw esp
         ActorLoop();
-        
-        // draw radar background
+
         radar::DrawBackground();
-        
-        // draw fps counter
+
         fps::Draw();
 
-        // draw menu
         menu::Render();
 
-        // end frame
         ImGui::Render();
         float clear[4] = { 0, 0, 0, 0 };
         d3d::pContext->OMSetRenderTargets(1, &d3d::pRenderTarget, nullptr);
@@ -599,7 +565,6 @@ inline void RenderLoop() {
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
         d3d::pSwapChain->Present(vsyncEnabled ? 1 : 0, 0);
 
-        // Frame limiter: cap at ~144 FPS when VSync is off
         if (!vsyncEnabled) {
             LARGE_INTEGER now;
             QueryPerformanceCounter(&now);
