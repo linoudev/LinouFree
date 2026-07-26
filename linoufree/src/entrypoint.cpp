@@ -10,7 +10,7 @@
 // you can paste anything you want here, it's pretty shitcoded but it works so idc
 // don't dm me or idk to ask how this works, its not supposed to be opened by peoples with 0 knowledge
 // i tried to do some comments to explain most of the stuff but im crazy so dont mind if its not very clear, just read the code and you will understand it :3
-// made by https://github.com/linoucat <3
+// made by https://github.com/linoudev <3
 // consider joining https://discord.gg/linouservices please :D
 
 
