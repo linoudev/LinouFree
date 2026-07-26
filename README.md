@@ -5,8 +5,9 @@ a free fortnite external cheet for windows, uses a kernel driver to read/write p
 ## features
 
 - **esp** - box, bones, snaplines, distance, player id, platform indicator (pc, xbox, playstation, switch, android, ios) with colors
-- **aimbot** - customizable fov, smoothing, visible check, lock target option, configurable aim key
+- **aimbot** - customizable fov, smoothing, visible check, lock target option, configurable aim key (click to rebind)
 - **radar** - 2d radar with grid, rotation modes, distance labels, opacity/size/range settings, fov cone
+- **exploits** - fov changer, insta reload, silent aim, player size with custom scale, no spread, rapid fire with adjustable rate
 - **misc** - fps counter with custom color, vsync toggle
 - **menu** - clean dark ui with tabbed layout, toggle with insert key
 
@@ -27,14 +28,15 @@ linoufree/
 ├── src/
 │   ├── entrypoint.cpp     - main entry, driver load, game detection
 │   ├── colors.h           - console color defines
+│   ├── auth/              - key auth system (optional)
 │   ├── memory/
 │   │   └── driver.h       - driver class + memory class (ioctl communication)
 │   ├── render/
 │   │   ├── render.h       - d3d11 init, overlay, menu ui, render loop
-│   │   └── esp.h          - esp drawing, aimbot, radar, player caching
+│   │   └── esp.h          - esp drawing, aimbot, exploits, radar, player caching
 │   ├── sdk/
 │   │   ├── sdk.h          - game sdk (world to screen, bone reading, visibility)
-│   │   └── offsets.h      - all the game offsets + uworld decryption
+│   │   └── offsets.h      - all the game offsets + uworld decryption + exploit offsets
 │   └── util/
 │       ├── math.h         - vectors, transforms, matrix math
 │       └── settings.h     - default config values for everything
