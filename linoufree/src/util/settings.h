@@ -1,7 +1,7 @@
 #pragma once
 
+// for retards, this is basically how the cheat will know what are the defaults settings, bool for true/false and float for numbers/int numbers, basic c++ stuff, you can change these values in the menu ingame and they will be saved in memory temporarily, if you want to change the default settings just change it there
 inline bool showMenu = true;
-
 inline bool boxEsp = true;
 inline bool boneEsp = false;
 inline bool snaplines = true;
@@ -37,14 +37,15 @@ inline bool aimbotLockTarget = true;
 inline int aimbotTargetPlayerId = -1;
 inline bool drawFovCircle = true;
 inline int aimbotKey = VK_RBUTTON;
-inline bool waitingForKey = false;
+inline bool silentAimEnabled = false;
+inline float silentAimFov = 180.0f;
 
-inline bool fovChanger = false;
-inline float fovValue = 120.0f;
-inline bool instaReload = false;
-inline bool silentAim = false;
-inline bool playerSize = false;
-inline float playerSizeValue = 1.0f;
-inline bool noSpread = false;
-inline bool rapidFire = false;
-inline float rapidFireValue = 3.0f;
+// Exploits
+inline bool exploitMasterSwitch = false;
+inline bool exploitFovChanger = false;
+inline float exploitFovValue = 120.0f;
+inline bool exploitInstaReload = false;
+
+inline bool exploitNoSpread = false;
+inline bool exploitRapidFire = false;
+inline float exploitRapidFireValue = 3.0f;

@@ -13,53 +13,44 @@
 #include "../util/settings.h"
 #include "esp.h"
 
+
+// most unoptimized render youll ever see in your life!
+
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 inline HWND g_overlayHwnd = nullptr;
 
 namespace d3d {
-    inline ID3D11Device* pDevice = nullptr;
-    inline ID3D11DeviceContext* pContext = nullptr;
-    inline IDXGISwapChain* pSwapChain = nullptr;
-    inline ID3D11RenderTargetView* pRenderTarget = nullptr;
-
-    inline void ApplyStyle() {
-        ImGuiIO& io = ImGui::GetIO();
-        io.Fonts->AddFontDefault();
-        ImGui::StyleColorsDark();
-    }
+    inline ID3D11Device*            pDevice      = nullptr;
+    inline ID3D11DeviceContext*     pContext      = nullptr;
+    inline IDXGISwapChain*          pSwapChain    = nullptr;
+    inline ID3D11RenderTargetView*  pRenderTarget = nullptr;
 
     inline bool Init(HWND hwnd) {
         DXGI_SWAP_CHAIN_DESC sd = {};
-        sd.BufferCount = 2;
-        sd.BufferDesc.Width = 0;
-        sd.BufferDesc.Height = 0;
-        sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        sd.BufferDesc.RefreshRate.Numerator = 60;
-        sd.BufferDesc.RefreshRate.Denominator = 1;
-        sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-        sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        sd.OutputWindow = hwnd;
-        sd.SampleDesc.Count = 1;
-        sd.SampleDesc.Quality = 0;
-        sd.Windowed = TRUE;
-        sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+        sd.BufferCount                        = 2;
+        sd.BufferDesc.Format                  = DXGI_FORMAT_R8G8B8A8_UNORM;
+        sd.Flags                              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        sd.BufferUsage                        = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        sd.OutputWindow                       = hwnd;
+        sd.SampleDesc.Count                   = 1;
+        sd.Windowed                           = TRUE;
+        sd.SwapEffect                         = DXGI_SWAP_EFFECT_DISCARD;
 
         D3D_FEATURE_LEVEL level;
-        if (FAILED(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0,
-            nullptr, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pDevice, &level, &pContext)))
+        if (FAILED(D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE,
+            nullptr, 0, nullptr, 0, D3D11_SDK_VERSION, &sd, &pSwapChain, &pDevice, &level, &pContext)))
             return false;
 
-        ID3D11Texture2D* pBackBuffer;
-        pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-        pDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTarget);
-        pBackBuffer->Release();
+        ID3D11Texture2D* bb;
+        pSwapChain->GetBuffer(0, IID_PPV_ARGS(&bb));
+        pDevice->CreateRenderTargetView(bb, nullptr, &pRenderTarget);
+        bb->Release();
 
         ImGui::CreateContext();
         ImGui_ImplWin32_Init(hwnd);
         ImGui_ImplDX11_Init(pDevice, pContext);
-        ApplyStyle();
-
         return true;
     }
 
@@ -67,478 +58,457 @@ namespace d3d {
         ImGui_ImplDX11_Shutdown();
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
-
         if (pRenderTarget) pRenderTarget->Release();
-        if (pSwapChain) pSwapChain->Release();
-        if (pContext) pContext->Release();
-        if (pDevice) pDevice->Release();
+        if (pSwapChain)    pSwapChain->Release();
+        if (pContext)      pContext->Release();
+        if (pDevice)       pDevice->Release();
     }
 }
 
-inline const char* GetKeyName(int vk) {
-    switch (vk) {
-        case VK_LBUTTON: return "Left Mouse";
-        case VK_RBUTTON: return "Right Mouse";
-        case VK_MBUTTON: return "Middle Mouse";
-        case VK_XBUTTON1: return "Mouse 4";
-        case VK_XBUTTON2: return "Mouse 5";
-        case VK_SHIFT: return "Shift";
-        case VK_CONTROL: return "Ctrl";
-        case VK_MENU: return "Alt";
-        case VK_CAPITAL: return "Caps Lock";
-        case VK_TAB: return "Tab";
-        case VK_SPACE: return "Space";
-        case VK_RETURN: return "Enter";
-        case VK_BACK: return "Backspace";
-        case VK_ESCAPE: return "Escape";
-        case VK_INSERT: return "Insert";
-        case VK_DELETE: return "Delete";
-        case VK_HOME: return "Home";
-        case VK_END: return "End";
-        case VK_PRIOR: return "Page Up";
-        case VK_NEXT: return "Page Down";
-        default:
-            if (vk >= 'A' && vk <= 'Z') {
-                static char buf[2] = {};
-                buf[0] = (char)vk;
-                buf[1] = 0;
-                return buf;
-            }
-            if (vk >= '0' && vk <= '9') {
-                static char buf[2] = {};
-                buf[0] = (char)vk;
-                buf[1] = 0;
-                return buf;
-            }
-            if (vk >= VK_F1 && vk <= VK_F12) {
-                static char buf[4] = {};
-                snprintf(buf, 4, "F%d", vk - VK_F1 + 1);
-                return buf;
-            }
-            return "Unknown";
-    }
-}
+namespace theme {
+    constexpr ImU32 BG          = IM_COL32(12,  12,  15,  255);
+    constexpr ImU32 PANEL       = IM_COL32(18,  18,  22,  255);
+    constexpr ImU32 PANEL_HOVER = IM_COL32(24,  24,  30,  255);
+    constexpr ImU32 BORDER      = IM_COL32(255, 255, 255, 12);
+    constexpr ImU32 ACCENT      = IM_COL32(120, 110, 220, 255);
+    constexpr ImU32 ACCENT_DIM  = IM_COL32( 80,  72, 160, 255);
+    constexpr ImU32 ACCENT_GLOW = IM_COL32(120, 110, 220,  40);
+    constexpr ImU32 TEXT        = IM_COL32(230, 230, 240, 255);
+    constexpr ImU32 TEXT_DIM    = IM_COL32(110, 110, 130, 255);
+    constexpr ImU32 TEXT_ACCENT = IM_COL32(160, 152, 255, 255);
+    constexpr ImU32 DANGER      = IM_COL32(220,  60,  60, 255);
+    constexpr ImU32 SUCCESS     = IM_COL32( 60, 200, 100, 255);
+    constexpr ImU32 SEPARATOR   = IM_COL32(255, 255, 255,  8);
 
-namespace colors {
-    inline ImColor bg = ImColor(16, 16, 18, 255);
-    inline ImColor sidebar = ImColor(14, 14, 16, 255);
-    inline ImColor accent = ImColor(155, 150, 219, 255);
-    inline ImColor accentDark = ImColor(100, 95, 160, 255);
-    inline ImColor textPrimary = ImColor(255, 255, 255, 255);
-    inline ImColor textSecondary = ImColor(140, 140, 150, 255);
-    inline ImColor separator = ImColor(255, 255, 255, 8);
-    inline ImColor footer = ImColor(12, 12, 14, 255);
+    inline ImVec4 ToVec4(ImU32 col) {
+        return ImVec4(
+            ((col >>  0) & 0xFF) / 255.f,
+            ((col >>  8) & 0xFF) / 255.f,
+            ((col >> 16) & 0xFF) / 255.f,
+            ((col >> 24) & 0xFF) / 255.f
+        );
+    }
 }
 
 namespace menu {
-    inline bool wasMenuOpen = false;
-    inline int currentTab = 0;
+    inline bool wasOpen     = false;
+    inline int  activeTab   = 0;
+    inline bool styleReady  = false;
 
-    inline void ApplyModernStyle() {
+    inline void SetupStyle() {
         ImGuiStyle& s = ImGui::GetStyle();
-
-        s.WindowRounding = 10.0f;
-        s.FrameRounding = 6.0f;
-        s.GrabRounding = 4.0f;
-        s.ChildRounding = 6.0f;
-        s.PopupRounding = 6.0f;
-        s.ScrollbarRounding = 4.0f;
-
-        s.WindowPadding = ImVec2(12, 12);
-        s.FramePadding = ImVec2(8, 5);
-        s.ItemSpacing = ImVec2(8, 8);
-        s.ItemInnerSpacing = ImVec2(6, 6);
-
-        s.WindowBorderSize = 0.0f;
-        s.FrameBorderSize = 0.0f;
-        s.ScrollbarSize = 10.0f;
+        s.WindowRounding    = 12.f;  s.ChildRounding     = 8.f;
+        s.FrameRounding     = 6.f;   s.PopupRounding     = 8.f;
+        s.GrabRounding      = 4.f;   s.ScrollbarRounding = 4.f;
+        s.WindowPadding     = ImVec2(0, 0);
+        s.FramePadding      = ImVec2(10, 5);
+        s.ItemSpacing       = ImVec2(8, 7);
+        s.ItemInnerSpacing  = ImVec2(6, 4);
+        s.WindowBorderSize  = 1.f;
+        s.FrameBorderSize   = 0.f;
+        s.ScrollbarSize     = 8.f;
 
         ImVec4* c = s.Colors;
-        c[ImGuiCol_WindowBg] = ImVec4(0.063f, 0.063f, 0.071f, 1.0f);
-        c[ImGuiCol_ChildBg] = ImVec4(0.055f, 0.055f, 0.063f, 1.0f);
-        c[ImGuiCol_Border] = ImVec4(1.0f, 1.0f, 1.0f, 0.03f);
-        c[ImGuiCol_FrameBg] = ImVec4(0.1f, 0.1f, 0.11f, 1.0f);
-        c[ImGuiCol_FrameBgHovered] = ImVec4(0.15f, 0.15f, 0.17f, 1.0f);
-        c[ImGuiCol_FrameBgActive] = ImVec4(0.2f, 0.2f, 0.22f, 1.0f);
-        c[ImGuiCol_TitleBg] = ImVec4(0.055f, 0.055f, 0.063f, 1.0f);
-        c[ImGuiCol_TitleBgActive] = ImVec4(0.055f, 0.055f, 0.063f, 1.0f);
-        c[ImGuiCol_CheckMark] = ImVec4(0.608f, 0.588f, 0.859f, 1.0f);
-        c[ImGuiCol_SliderGrab] = ImVec4(0.608f, 0.588f, 0.859f, 1.0f);
-        c[ImGuiCol_SliderGrabActive] = ImVec4(0.7f, 0.68f, 0.95f, 1.0f);
-        c[ImGuiCol_Button] = ImVec4(0.608f, 0.588f, 0.859f, 0.3f);
-        c[ImGuiCol_ButtonHovered] = ImVec4(0.608f, 0.588f, 0.859f, 0.5f);
-        c[ImGuiCol_ButtonActive] = ImVec4(0.608f, 0.588f, 0.859f, 0.7f);
-        c[ImGuiCol_Header] = ImVec4(0.608f, 0.588f, 0.859f, 0.2f);
-        c[ImGuiCol_HeaderHovered] = ImVec4(0.608f, 0.588f, 0.859f, 0.3f);
-        c[ImGuiCol_HeaderActive] = ImVec4(0.608f, 0.588f, 0.859f, 0.4f);
-        c[ImGuiCol_Separator] = ImVec4(1.0f, 1.0f, 1.0f, 0.05f);
-        c[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        c[ImGuiCol_TextDisabled] = ImVec4(0.55f, 0.55f, 0.59f, 1.0f);
+        auto v = [](ImU32 col) { return theme::ToVec4(col); };
+        c[ImGuiCol_WindowBg]          = v(theme::BG);
+        c[ImGuiCol_ChildBg]           = v(theme::PANEL);
+        c[ImGuiCol_Border]            = v(theme::BORDER);
+        c[ImGuiCol_FrameBg]           = ImVec4(0.09f,0.09f,0.12f,1.f);
+        c[ImGuiCol_FrameBgHovered]    = ImVec4(0.13f,0.13f,0.17f,1.f);
+        c[ImGuiCol_FrameBgActive]     = ImVec4(0.18f,0.18f,0.23f,1.f);
+        c[ImGuiCol_TitleBg]           = v(theme::BG);
+        c[ImGuiCol_TitleBgActive]     = v(theme::BG);
+        c[ImGuiCol_CheckMark]         = v(theme::ACCENT);
+        c[ImGuiCol_SliderGrab]        = v(theme::ACCENT);
+        c[ImGuiCol_SliderGrabActive]  = ImVec4(0.56f,0.52f,0.95f,1.f);
+        c[ImGuiCol_Button]            = ImVec4(0.47f,0.43f,0.86f,0.18f);
+        c[ImGuiCol_ButtonHovered]     = ImVec4(0.47f,0.43f,0.86f,0.35f);
+        c[ImGuiCol_ButtonActive]      = ImVec4(0.47f,0.43f,0.86f,0.55f);
+        c[ImGuiCol_Header]            = ImVec4(0.47f,0.43f,0.86f,0.15f);
+        c[ImGuiCol_HeaderHovered]     = ImVec4(0.47f,0.43f,0.86f,0.25f);
+        c[ImGuiCol_HeaderActive]      = ImVec4(0.47f,0.43f,0.86f,0.40f);
+        c[ImGuiCol_Separator]         = v(theme::SEPARATOR);
+        c[ImGuiCol_Text]              = v(theme::TEXT);
+        c[ImGuiCol_TextDisabled]      = v(theme::TEXT_DIM);
+        c[ImGuiCol_ScrollbarBg]       = ImVec4(0,0,0,0);
+        c[ImGuiCol_ScrollbarGrab]     = ImVec4(0.3f,0.3f,0.4f,0.5f);
+        c[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.4f,0.4f,0.55f,0.7f);
     }
 
-    inline void TabButton(const char* label, int tabIndex) {
-        ImVec4 activeCol = ImVec4(0.608f, 0.588f, 0.859f, 1.0f);
-        ImVec4 inactiveCol = ImVec4(0.4f, 0.4f, 0.43f, 1.0f);
+    inline void SectionHeader(const char* label) {
+        ImDrawList* dl  = ImGui::GetWindowDrawList();
+        ImVec2 p        = ImGui::GetCursorScreenPos();
+        dl->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + 3, p.y + 14),
+                          theme::ACCENT, 2.f);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_ACCENT));
+        ImGui::TextUnformatted(label);
+        ImGui::PopStyleColor();
+        ImGui::Spacing();
+    }
 
-        bool isActive = (currentTab == tabIndex);
+    inline void Checkbox(const char* label, bool* v) {
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(*v ? theme::TEXT : theme::TEXT_DIM));
+        ImGui::Checkbox(label, v);
+        ImGui::PopStyleColor();
+    }
 
-        ImGui::PushStyleColor(ImGuiCol_Text, isActive ? activeCol : inactiveCol);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.05f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.1f));
+    inline void TabButton(ImDrawList* dl, const char* icon, const char* label,
+                          int idx, float x, float y, float w, float h) {
+        bool active  = (activeTab == idx);
+        ImVec2 bMin  = ImVec2(x, y);
+        ImVec2 bMax  = ImVec2(x + w, y + h);
 
-        if (ImGui::Button(label, ImVec2(90, 30))) {
-            currentTab = tabIndex;
+        ImVec2 mp = ImGui::GetMousePos();
+        bool hov = mp.x >= bMin.x && mp.x <= bMax.x && mp.y >= bMin.y && mp.y <= bMax.y;
+
+        if (active)
+            dl->AddRectFilled(bMin, bMax, theme::ACCENT_GLOW, 6.f);
+        else if (hov)
+            dl->AddRectFilled(bMin, bMax, IM_COL32(255,255,255,6), 6.f);
+
+        if (active)
+            dl->AddRectFilled(ImVec2(x + 8, y + h - 2), ImVec2(x + w - 8, y + h),
+                              theme::ACCENT, 2.f);
+
+        char buf[64];
+        snprintf(buf, sizeof(buf), "%s  %s", icon, label);
+        ImVec2 ts = ImGui::CalcTextSize(buf);
+        float tx = x + (w - ts.x) * 0.5f;
+        float ty = y + (h - ts.y) * 0.5f;
+
+        ImU32 tc = active ? theme::TEXT_ACCENT : (hov ? theme::TEXT : theme::TEXT_DIM);
+        dl->AddText(ImVec2(tx, ty), tc, buf);
+        ImGui::SetCursorScreenPos(bMin);
+        ImGui::InvisibleButton(label, ImVec2(w, h));
+        if (ImGui::IsItemClicked()) activeTab = idx;
+    }
+
+    inline void DrawAimbotTab() {
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
+        SectionHeader("AIMBOT");
+
+        Checkbox("Enable Aimbot", &aimbotEnabled);
+        ImGui::Spacing();
+
+        if (aimbotEnabled) {
+            ImGui::Indent(10);
+            Checkbox("Visible Only", &aimbotVisibleOnly);
+            Checkbox("Lock Target",  &aimbotLockTarget);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Keeps aim locked until button release or target dies");
+
+            if (aimbotLockTarget) {
+                ImGui::Spacing();
+                ImGui::PushItemWidth(110);
+                ImGui::InputInt("Target Player##pid", &aimbotTargetPlayerId, 1, 5);
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("-1 = nearest in FOV  |  0+ = specific player number");
+                if (aimbotTargetPlayerId < -1) aimbotTargetPlayerId = -1;
+                ImGui::PopItemWidth();
+            }
+
+            Checkbox("FOV Circle", &drawFovCircle);
+            ImGui::Unindent(10);
         }
 
-        ImGui::PopStyleColor(4);
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        SectionHeader("SETTINGS");
 
-        if (isActive) {
-            ImVec2 min = ImGui::GetItemRectMin();
-            ImVec2 max = ImGui::GetItemRectMax();
-            ImGui::GetWindowDrawList()->AddRectFilled(
-                ImVec2(min.x + 10, max.y - 2),
-                ImVec2(max.x - 10, max.y),
-                IM_COL32(155, 150, 219, 255),
-                2.0f
-            );
+        ImGui::PushItemWidth(-1);
+        ImGui::SliderFloat("FOV Radius##fov",  &aimbotFov,    20.f, 400.f, "%.0f px");
+        ImGui::SliderFloat("Smoothing##smt",   &aimbotSmooth,  0.1f, 20.f, "%.1f");
+        ImGui::PopItemWidth();
+
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::TextUnformatted("  Aim Key: Right Mouse Button");
+        ImGui::PopStyleColor();
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        SectionHeader("SILENT AIM");
+
+        Checkbox("Enable Silent Aim", &silentAimEnabled);
+        if (silentAimEnabled) {
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("Silent FOV##sfov", &silentAimFov, 20.f, 400.f, "%.0f px");
+            ImGui::PopItemWidth();
+            ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+            ImGui::TextUnformatted("  No key binding — always active");
+            ImGui::PopStyleColor();
         }
+    }
+
+    inline void DrawVisualsTab() {
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
+        SectionHeader("ESP");
+
+        Checkbox("Box ESP",      &boxEsp);
+        Checkbox("Bone ESP",     &boneEsp);
+        Checkbox("Snaplines",    &snaplines);
+        Checkbox("Player ID",    &showPlayerId);
+        Checkbox("Distance",     &showDistance);
+        Checkbox("Platform",     &showPlatform);
+
+        ImGui::PushItemWidth(-1);
+        ImGui::SliderFloat("Max Distance##espd", &maxEspDistance, 50.f, 700.f, "%.0f m");
+        if (boneEsp)
+            ImGui::SliderFloat("Bone Distance##bnd", &maxBoneDistance, 50.f, 500.f, "%.0f m");
+        ImGui::PopItemWidth();
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        SectionHeader("RADAR");
+
+        Checkbox("Enable Radar",       &radarEnabled);
+        if (radarEnabled) {
+            ImGui::Indent(10);
+            Checkbox("Show Distance##rd",    &radarDistance);
+            Checkbox("Rotate with Camera",   &radarRotationMode);
+            Checkbox("Show Grid",            &radarGrid);
+
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("Opacity##rop",   &radarOpacity,   0.f, 255.f, "%.0f");
+            ImGui::SliderInt("Size##rsz",         &radarSize,      80, 400);
+            ImGui::SliderInt("Range (m)##rrng",   &radarRange,     50, 800);
+            ImGui::SliderInt("Pos X##rpx",        &radarPositionX, 0, Width);
+            ImGui::SliderInt("Pos Y##rpy",        &radarPositionY, 0, Height);
+            if (radarGrid)
+                ImGui::SliderInt("Grid Div##rgd", &radarGridDivisions, 2, 16);
+            ImGui::PopItemWidth();
+            ImGui::Unindent(10);
+        }
+
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::TextUnformatted("  Green=Visible  Red=Player  Yellow=Bot");
+        ImGui::PopStyleColor();
+    }
+
+    inline void DrawMiscTab() {
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
+        SectionHeader("DISPLAY");
+
+        Checkbox("VSync",        &vsyncEnabled);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Caps FPS to monitor refresh rate");
+        Checkbox("FPS Counter",  &showFpsCounter);
+
+        if (showFpsCounter) {
+            ImGui::Spacing();
+            ImGui::ColorEdit4("FPS Color##fc", fpsColor,
+                ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
+        }
+    }
+
+    inline void DrawExploitsTab() {
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 6);
+        SectionHeader("EXPLOITS");
+
+        Checkbox("Master Switch", &exploitMasterSwitch);
+        ImGui::Spacing();
+
+        if (exploitMasterSwitch) {
+            ImGui::Indent(10);
+
+            Checkbox("FOV Changer", &exploitFovChanger);
+            if (exploitFovChanger) {
+                ImGui::PushItemWidth(-1);
+                ImGui::SliderFloat("FOV Value##fovx", &exploitFovValue, 10.f, 180.f, "%.0f");
+                ImGui::PopItemWidth();
+            }
+
+            Checkbox("Insta Reload", &exploitInstaReload);
+
+            Checkbox("No Spread", &exploitNoSpread);
+
+            Checkbox("Rapid Fire", &exploitRapidFire);
+            if (exploitRapidFire) {
+                ImGui::PushItemWidth(-1);
+                ImGui::SliderFloat("Rate##rpf", &exploitRapidFireValue, 0.5f, 10.f, "%.1f");
+                ImGui::PopItemWidth();
+            }
+
+            ImGui::Unindent(10);
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::TextUnformatted("  Some exploits may need tweaking per patch");
+        ImGui::PopStyleColor();
     }
 
     inline void Render() {
-        static bool styleApplied = false;
-        if (!styleApplied) {
-            ApplyModernStyle();
-            styleApplied = true;
-        }
+        if (!styleReady) { SetupStyle(); styleReady = true; }
 
-        if (GetAsyncKeyState(VK_INSERT) & 1) {
-            showMenu = !showMenu;
-        }
+        if (GetAsyncKeyState(VK_INSERT) & 1) showMenu = !showMenu;
 
-        if (showMenu != wasMenuOpen) {
-            wasMenuOpen = showMenu;
-            LONG style = GetWindowLong(g_overlayHwnd, GWL_EXSTYLE);
+        if (showMenu != wasOpen) {
+            wasOpen = showMenu;
+            LONG st = GetWindowLong(g_overlayHwnd, GWL_EXSTYLE);
             if (showMenu) {
-                SetWindowLong(g_overlayHwnd, GWL_EXSTYLE, style & ~WS_EX_TRANSPARENT);
+                SetWindowLong(g_overlayHwnd, GWL_EXSTYLE, st & ~WS_EX_TRANSPARENT);
                 SetForegroundWindow(g_overlayHwnd);
             } else {
-                SetWindowLong(g_overlayHwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT);
+                SetWindowLong(g_overlayHwnd, GWL_EXSTYLE, st | WS_EX_TRANSPARENT);
             }
         }
 
         if (!showMenu) return;
+        const float W = 480.f, H = 440.f;
+        const float SIDEBAR = 130.f;
+        const float HEADER  = 52.f;
+        const float FOOTER  = 28.f;
 
-        ImGui::SetNextWindowSize(ImVec2(420, 380), ImGuiCond_FirstUseEver);
-        ImGui::Begin("##MainMenu", nullptr,
-            ImGuiWindowFlags_NoTitleBar |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_NoScrollbar);
+        ImGui::SetNextWindowSize(ImVec2(W, H), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowBgAlpha(0.97f);
+        ImGui::Begin("##linou", nullptr,
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize);
 
-        auto draw = ImGui::GetWindowDrawList();
-        ImVec2 pos = ImGui::GetWindowPos();
-        ImVec2 size = ImGui::GetWindowSize();
+        ImDrawList* dl  = ImGui::GetWindowDrawList();
+        ImVec2 wPos     = ImGui::GetWindowPos();
+        ImVec2 wSz      = ImGui::GetWindowSize();
+        dl->AddRectFilled(wPos, ImVec2(wPos.x + wSz.x, wPos.y + HEADER),
+                          theme::PANEL, 12.f, ImDrawFlags_RoundCornersTop);
 
-        draw->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + 50), IM_COL32(14, 14, 16, 255), 10.0f, ImDrawFlags_RoundCornersTop);
-
-        ImGui::SetCursorPos(ImVec2(15, 15));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-        ImGui::Text("Linou Free");
+        ImGui::SetCursorPos(ImVec2(16, 14));
+        dl->AddRectFilled(ImVec2(wPos.x + 14, wPos.y + 15),
+                          ImVec2(wPos.x + 17, wPos.y + 37), theme::ACCENT, 2.f);
+        ImGui::SetCursorPos(ImVec2(24, 15));
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT));
+        ImGui::Text("Linou");
         ImGui::PopStyleColor();
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.59f, 1.0f));
-        ImGui::Text("");
+        ImGui::SameLine(0, 4);
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_ACCENT));
+        ImGui::Text("Free");
+        ImGui::PopStyleColor();
+        ImGui::SameLine(0, 8);
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::Text("v67.0");
         ImGui::PopStyleColor();
 
-        ImGui::SetCursorPos(ImVec2(size.x - 300, 10));
-        TabButton("Aimbot", 0);
-        ImGui::SameLine();
-        TabButton("Visuals", 1);
-        ImGui::SameLine();
-        TabButton("Misc", 2);
-        ImGui::SameLine();
-        TabButton("Exploits", 3);
-
-        draw->AddRectFilled(ImVec2(pos.x, pos.y + 50), ImVec2(pos.x + size.x, pos.y + 51), IM_COL32(255, 255, 255, 8));
-
-        ImGui::SetCursorPos(ImVec2(15, 60));
-        ImGui::BeginChild("##Content", ImVec2(size.x - 30, size.y - 100), false);
-
-        if (currentTab == 0) {
-
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-            ImGui::Text("Aimbot Settings");
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            ImGui::Checkbox("Enable Aimbot", &aimbotEnabled);
-
-            if (aimbotEnabled) {
-                ImGui::Spacing();
-
-                ImGui::Checkbox("Visible Only", &aimbotVisibleOnly);
-                ImGui::Checkbox("Lock Target", &aimbotLockTarget);
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetTooltip("Lock onto target until button release or target dies");
-                }
-
-                if (aimbotLockTarget) {
-                    ImGui::Spacing();
-                    ImGui::PushItemWidth(100);
-                    ImGui::InputInt("Target Player ID", &aimbotTargetPlayerId, 1, 10);
-                    if (ImGui::IsItemHovered()) {
-                        ImGui::SetTooltip("Set to -1 for auto target, or specific player number (0+)");
-                    }
-                    if (aimbotTargetPlayerId < -1) aimbotTargetPlayerId = -1;
-                    ImGui::PopItemWidth();
-                }
-
-                ImGui::Checkbox("Draw FOV Circle", &drawFovCircle);
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-
-                ImGui::SliderFloat("FOV Radius", &aimbotFov, 20.0f, 400.0f, "%.0f px");
-                ImGui::SliderFloat("Smoothing", &aimbotSmooth, 0.1f, 20.0f, "%.1f");
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-
-                ImGui::Spacing();
-                if (!waitingForKey) {
-                    char keyLabel[64];
-                    snprintf(keyLabel, 64, "Aim Key: %s", GetKeyName(aimbotKey));
-                    if (ImGui::Button(keyLabel, ImVec2(180, 0))) {
-                        waitingForKey = true;
-                    }
-                } else {
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.5f, 0.6f));
-                    if (ImGui::Button("Press a key...", ImVec2(180, 0))) {
-                        waitingForKey = false;
-                    }
-                    ImGui::PopStyleColor();
-                    for (int vk = 0; vk < 256; vk++) {
-                        if (GetAsyncKeyState(vk) & 1) {
-                            if (vk != VK_INSERT && vk != VK_ESCAPE) {
-                                aimbotKey = vk;
-                            }
-                            waitingForKey = false;
-                            break;
-                        }
-                    }
-                }
-            }
+        ImGui::SetCursorPos(ImVec2(0, 0));
+        ImGui::InvisibleButton("##drag", ImVec2(wSz.x, HEADER));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+            ImVec2 delta = ImGui::GetIO().MouseDelta;
+            ImVec2 np    = ImVec2(wPos.x + delta.x, wPos.y + delta.y);
+            ImGui::SetWindowPos(np);
         }
-        else if (currentTab == 1) {
 
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-            ImGui::Text("ESP Settings");
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+        dl->AddRectFilled(ImVec2(wPos.x, wPos.y + HEADER),
+                          ImVec2(wPos.x + wSz.x, wPos.y + HEADER + 1), theme::SEPARATOR);
 
-            ImGui::Checkbox("Box ESP", &boxEsp);
-            ImGui::Checkbox("Bone ESP", &boneEsp);
-            ImGui::Checkbox("Snaplines", &snaplines);
-            ImGui::Checkbox("Show Player ID", &showPlayerId);
-            ImGui::Checkbox("Show Distance", &showDistance);
-            ImGui::Checkbox("Show Platform", &showPlatform);
+        dl->AddRectFilled(ImVec2(wPos.x, wPos.y + HEADER + 1),
+                          ImVec2(wPos.x + SIDEBAR, wPos.y + wSz.y), IM_COL32(15,15,18,255),
+                          0.f);
+        dl->AddRectFilled(ImVec2(wPos.x + SIDEBAR, wPos.y + HEADER + 1),
+                          ImVec2(wPos.x + SIDEBAR + 1, wPos.y + wSz.y), theme::BORDER);
 
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+        float tabW = SIDEBAR - 8.f;
+        float tabH = 36.f;
+        float tabX = wPos.x + 4.f;
+        float tabY = wPos.y + HEADER + 10.f;
+        float tabGap = 4.f;
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-            ImGui::Text("Radar Settings");
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
+        TabButton(dl, "A", "Aimbot",   0, tabX, tabY,                  tabW, tabH);
+        TabButton(dl, "V", "Visuals",  1, tabX, tabY + (tabH+tabGap),     tabW, tabH);
+        TabButton(dl, "M", "Misc",     2, tabX, tabY + (tabH+tabGap)*2,   tabW, tabH);
+        TabButton(dl, "E", "Exploits", 3, tabX, tabY + (tabH+tabGap)*3,   tabW, tabH);
 
-            ImGui::Checkbox("Enable Radar", &radarEnabled);
-            if (radarEnabled) {
+        ImGui::SetCursorScreenPos(ImVec2(wPos.x + 4, wPos.y + wSz.y - FOOTER - 18));
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::Text("free in discord.gg/linouservices");
+        ImGui::PopStyleColor();
 
-                ImGui::Checkbox("Radar Distance", &radarDistance);
-                ImGui::Checkbox("Rotated Orientation", &radarRotationMode);
-                ImGui::Checkbox("Show Grid", &radarGrid);
-                ImGui::Checkbox("Line of Sight", &radarLineOfSight);
-                if (radarLineOfSight) {
-                    ImGui::Checkbox("Filled LOS", &radarLosFill);
-                }
+        float contentX = SIDEBAR + 10.f;
+        float contentW = wSz.x - SIDEBAR - 14.f;
+        float contentH = wSz.y - HEADER - FOOTER - 10.f;
 
-                ImGui::Spacing();
-                ImGui::SliderFloat("Opacity", &radarOpacity, 0.0f, 255.0f, "%.0f");
-                ImGui::SliderInt("Position X", &radarPositionX, 0, Width);
-                ImGui::SliderInt("Position Y", &radarPositionY, 0, Height);
-                ImGui::SliderInt("Size", &radarSize, 50, 800);
-                ImGui::SliderInt("Range", &radarRange, 50, 1000);
-                if (radarGrid) {
-                    ImGui::SliderInt("Grid Divisions", &radarGridDivisions, 2, 20);
-                }
-            }
+        ImGui::SetCursorPos(ImVec2(contentX, HEADER + 6.f));
+        ImGui::BeginChild("##content", ImVec2(contentW, contentH), false,
+                          ImGuiWindowFlags_NoScrollbar);
 
-            ImGui::Spacing();
-            ImGui::Spacing();
-
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.59f, 1.0f));
-            ImGui::TextWrapped("Green = Visible, Red = Player, Yellow = Bot");
-            ImGui::PopStyleColor();
-        }
-        else if (currentTab == 2) {
-
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-            ImGui::Text("Misc Settings");
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            ImGui::Checkbox("VSync", &vsyncEnabled);
-            if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Enable vertical sync (limits FPS to monitor refresh rate)");
-            }
-
-            ImGui::Checkbox("Show FPS Counter", &showFpsCounter);
-
-            if (showFpsCounter) {
-                ImGui::Spacing();
-                ImGui::ColorEdit4("FPS Color", fpsColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar);
-            }
-        }
-        else if (currentTab == 3) {
-
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.608f, 0.588f, 0.859f, 1.0f));
-            ImGui::Text("Exploits");
-            ImGui::PopStyleColor();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            ImGui::Checkbox("FOV Changer", &fovChanger);
-            if (fovChanger) {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(120);
-                ImGui::SliderFloat("##FOV", &fovValue, 10.0f, 180.0f, "%.0f");
-                ImGui::PopItemWidth();
-            }
-            ImGui::Checkbox("Insta Reload", &instaReload);
-            ImGui::Checkbox("Silent Aim", &silentAim);
-            ImGui::Spacing();
-
-            ImGui::Checkbox("No Spread", &noSpread);
-            ImGui::Spacing();
-
-            ImGui::Checkbox("Player Size", &playerSize);
-            if (playerSize) {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(120);
-                ImGui::SliderFloat("##PlayerSize", &playerSizeValue, 0.1f, 5.0f, "%.1f");
-                ImGui::PopItemWidth();
-            }
-            ImGui::Checkbox("Rapid Fire", &rapidFire);
-            if (rapidFire) {
-                ImGui::SameLine();
-                ImGui::PushItemWidth(120);
-                ImGui::SliderFloat("##RapidFire", &rapidFireValue, 0.5f, 10.0f, "%.1f");
-                ImGui::PopItemWidth();
-            }
-        }
+        if      (activeTab == 0) DrawAimbotTab();
+        else if (activeTab == 1) DrawVisualsTab();
+        else if (activeTab == 2) DrawMiscTab();
+        else if (activeTab == 3) DrawExploitsTab();
 
         ImGui::EndChild();
 
-        draw->AddRectFilled(ImVec2(pos.x, pos.y + size.y - 30), ImVec2(pos.x + size.x, pos.y + size.y), IM_COL32(12, 12, 14, 255), 10.0f, ImDrawFlags_RoundCornersBottom);
-        draw->AddRectFilled(ImVec2(pos.x, pos.y + size.y - 31), ImVec2(pos.x + size.x, pos.y + size.y - 30), IM_COL32(255, 255, 255, 8));
+        dl->AddRectFilled(ImVec2(wPos.x, wPos.y + wSz.y - FOOTER),
+                          ImVec2(wPos.x + wSz.x, wPos.y + wSz.y),
+                          theme::PANEL, 12.f, ImDrawFlags_RoundCornersBottom);
+        dl->AddRectFilled(ImVec2(wPos.x, wPos.y + wSz.y - FOOTER),
+                          ImVec2(wPos.x + wSz.x, wPos.y + wSz.y - FOOTER + 1), theme::SEPARATOR);
 
-        ImGui::SetCursorPos(ImVec2(15, size.y - 23));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.45f, 0.5f, 1.0f));
-        ImGui::Text("Press INSERT to toggle menu");
+        ImGui::SetCursorPos(ImVec2(contentX, wSz.y - FOOTER + 7.f));
+        ImGui::PushStyleColor(ImGuiCol_Text, theme::ToVec4(theme::TEXT_DIM));
+        ImGui::Text("INSERT  toggle menu");
         ImGui::PopStyleColor();
 
         ImGui::End();
     }
-}
+} // namespace menu <3
 
 namespace overlay {
     inline WNDCLASSEX wc = {};
 
     inline LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-            return true;
-
-        switch (msg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-        }
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) return true;
+        if (msg == WM_DESTROY) { PostQuitMessage(0); return 0; }
         return DefWindowProc(hWnd, msg, wParam, lParam);
     }
 
     inline bool Create() {
-        wc.cbSize = sizeof(WNDCLASSEX);
-        wc.style = CS_HREDRAW | CS_VREDRAW;
-        wc.lpfnWndProc = WndProc;
-        wc.hInstance = GetModuleHandle(nullptr);
+        wc.cbSize        = sizeof(WNDCLASSEX);
+        wc.style         = CS_HREDRAW | CS_VREDRAW;
+        wc.lpfnWndProc   = WndProc;
+        wc.hInstance     = GetModuleHandle(nullptr);
         wc.lpszClassName = L"OverlayClass";
         RegisterClassEx(&wc);
 
         g_overlayHwnd = CreateWindowEx(
             WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED,
             wc.lpszClassName, L"",
-            WS_POPUP,
-            0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
-            nullptr, nullptr, wc.hInstance, nullptr
-        );
+            WS_POPUP, 0, 0,
+            GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN),
+            nullptr, nullptr, wc.hInstance, nullptr);
 
         if (!g_overlayHwnd) return false;
 
-        SetLayeredWindowAttributes(g_overlayHwnd, RGB(0, 0, 0), 0, LWA_COLORKEY);
-
-        MARGINS margin = { -1 };
-        DwmExtendFrameIntoClientArea(g_overlayHwnd, &margin);
-
+        SetLayeredWindowAttributes(g_overlayHwnd, RGB(0,0,0), 0, LWA_COLORKEY);
+        MARGINS m = { -1 };
+        DwmExtendFrameIntoClientArea(g_overlayHwnd, &m);
         ShowWindow(g_overlayHwnd, SW_SHOWDEFAULT);
         UpdateWindow(g_overlayHwnd);
 
         return d3d::Init(g_overlayHwnd);
     }
 }
-
+// really accurate fps counter (no)
 namespace fps {
-    inline void Draw() {
+    inline void Draw(ImDrawList* dl) {
         if (!showFpsCounter) return;
-
-        auto draw = ImGui::GetBackgroundDrawList();
-        float fps = ImGui::GetIO().Framerate;
-
-        char fpsText[32];
-        snprintf(fpsText, sizeof(fpsText), "FPS: %.0f", fps);
-
-        float x = 10.0f;
-        float y = 10.0f;
-
-        ImU32 textColor = IM_COL32(
-            (int)(fpsColor[0] * 255),
-            (int)(fpsColor[1] * 255),
-            (int)(fpsColor[2] * 255),
-            (int)(fpsColor[3] * 255)
-        );
-
-        draw->AddText(ImVec2(x + 1, y + 1), IM_COL32(0, 0, 0, 255), fpsText);
-
-        draw->AddText(ImVec2(x, y), textColor, fpsText);
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%.0f fps", ImGui::GetIO().Framerate);
+        ImU32 col = IM_COL32(
+            (int)(fpsColor[0]*255), (int)(fpsColor[1]*255),
+            (int)(fpsColor[2]*255), (int)(fpsColor[3]*255));
+        dl->AddText(ImVec2(11, 11), IM_COL32(0,0,0,200), buf);
+        dl->AddText(ImVec2(10, 10), col, buf);
     }
 }
-
+// peak performance render loop (no)
 inline void RenderLoop() {
     MSG msg = {};
-    LARGE_INTEGER freq, last;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&last);
     while (msg.message != WM_QUIT) {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -550,31 +520,20 @@ inline void RenderLoop() {
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        ImDrawList* bg = ImGui::GetBackgroundDrawList();
+
         ActorLoop();
 
-        radar::DrawBackground();
-
-        fps::Draw();
+        fps::Draw(bg);
 
         menu::Render();
 
         ImGui::Render();
-        float clear[4] = { 0, 0, 0, 0 };
+        float clear[4] = {};
         d3d::pContext->OMSetRenderTargets(1, &d3d::pRenderTarget, nullptr);
         d3d::pContext->ClearRenderTargetView(d3d::pRenderTarget, clear);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
         d3d::pSwapChain->Present(vsyncEnabled ? 1 : 0, 0);
-
-        if (!vsyncEnabled) {
-            LARGE_INTEGER now;
-            QueryPerformanceCounter(&now);
-            double elapsed = double(now.QuadPart - last.QuadPart) / freq.QuadPart * 1000.0;
-            if (elapsed < 6.9) {
-                Sleep(DWORD(6.9 - elapsed));
-            }
-            QueryPerformanceCounter(&last);
-        }
     }
-
     d3d::Shutdown();
 }

@@ -2,6 +2,7 @@
 #include <d3d9.h>
 #include <cmath>
 #include <numbers>
+// i was the worst in my math class so enjoy the terrifying math <3
 
 inline int Width = GetSystemMetrics(SM_CXSCREEN);
 inline int Height = GetSystemMetrics(SM_CYSCREEN);
@@ -13,34 +14,38 @@ public:
     Vector2(double _x, double _y) : x(_x), y(_y) {}
 };
 
+// 3d vector for world positions
 class Vector3 {
 public:
     double x, y, z;
-
+    
     Vector3() : x(0), y(0), z(0) {}
     Vector3(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-
-    double Dot(const Vector3& v) const {
-        return x * v.x + y * v.y + z * v.z;
+    
+    double Dot(const Vector3& v) const { 
+        return x * v.x + y * v.y + z * v.z; 
+    }
+    
+    Vector3 operator-(const Vector3& v) const { 
+        return Vector3(x - v.x, y - v.y, z - v.z); 
     }
 
-    Vector3 operator-(const Vector3& v) const {
-        return Vector3(x - v.x, y - v.y, z - v.z);
+    Vector3 operator+(const Vector3& v) const {
+        return Vector3(x + v.x, y + v.y, z + v.z);
     }
 };
-
-struct FPlane : Vector3 {
-    double W = 0;
+struct FPlane : Vector3 { 
+    double W = 0; 
 };
 
-struct FQuat {
-    double x, y, z, w;
+struct FQuat { 
+    double x, y, z, w; 
 };
 
-struct Camera {
+struct Camera { 
     Vector3 Location;
     Vector3 Rotation;
-    float FieldOfView;
+    float FieldOfView; 
 };
 
 class FMatrix {
@@ -58,6 +63,7 @@ public:
     }
 };
 
+// transform with rotation, translation, scale
 struct FTransform {
     FQuat Rotation;
     Vector3 Translation;
@@ -66,7 +72,6 @@ struct FTransform {
     uint8_t pad2[8];
 
     FMatrix ToMatrixWithScale() const {
-
         Vector3 S(
             Scale3D.x ? Scale3D.x : 1,
             Scale3D.y ? Scale3D.y : 1,
@@ -111,6 +116,7 @@ public:
     int32_t count = 0;
     int32_t max = 0;
 };
+
 
 inline D3DMATRIX MatrixMultiplication(D3DMATRIX m1, D3DMATRIX m2) {
     D3DMATRIX o;
@@ -165,3 +171,17 @@ inline D3DMATRIX Matrix(Vector3 rot) {
 
     return m;
 }
+
+struct FScalableFloat {
+    float value;
+    uintptr_t curve;
+    struct { float min, max; uintptr_t ptr; } table;
+};
+
+struct FFortWeaponRampingData {
+    bool bIsRamping;
+    char pad1[7];
+    FScalableFloat maxRampStacks;
+    FScalableFloat fireRateToAdd;
+    FScalableFloat graceDuration;
+};

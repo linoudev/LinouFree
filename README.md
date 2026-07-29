@@ -1,19 +1,18 @@
 # linoufree
 
-a free fortnite external cheet for windows, uses a kernel driver to read/write physical memory and an imgui overlay to render everything. made by [linoudev](https://github.com/linoudev)
+a free fortnite external cheat for windows, uses a kernel driver to read/write physical memory and an imgui overlay to render everything. made by [linoucat](https://github.com/linoucat)
 
 ## features
 
 - **esp** - box, bones, snaplines, distance, player id, platform indicator (pc, xbox, playstation, switch, android, ios) with colors
-- **aimbot** - customizable fov, smoothing, visible check, lock target option, configurable aim key (click to rebind)
+- **aimbot** - customizable fov, smoothing, visible check, lock target option, configurable aim key
 - **radar** - 2d radar with grid, rotation modes, distance labels, opacity/size/range settings, fov cone
-- **exploits** - fov changer, insta reload, silent aim, player size with custom scale, no spread, rapid fire with adjustable rate
 - **misc** - fps counter with custom color, vsync toggle
 - **menu** - clean dark ui with tabbed layout, toggle with insert key
 
 ## how it works
 
-the cheet communicates with a kernel driver through deviceiocontrol. it opens a handle to a named device, sends ioctl codes for reading/writing physical memory, getting the process base address, and fetching the cr3 (directory table base) for the target process.
+the cheat communicates with a kernel driver through deviceiocontrol. it opens a handle to a named device, sends ioctl codes for reading/writing physical memory, getting the process base address, and fetching the cr3 (directory table base) for the target process.
 
 the driver itself is downloaded and loaded at runtime from catbox.moe using curl, then mapped with a mapper tool. this happens automatically if the driver handle fails to open on first try.
 
@@ -28,15 +27,14 @@ linoufree/
 ├── src/
 │   ├── entrypoint.cpp     - main entry, driver load, game detection
 │   ├── colors.h           - console color defines
-│   ├── auth/              - key auth system (optional)
 │   ├── memory/
 │   │   └── driver.h       - driver class + memory class (ioctl communication)
 │   ├── render/
 │   │   ├── render.h       - d3d11 init, overlay, menu ui, render loop
-│   │   └── esp.h          - esp drawing, aimbot, exploits, radar, player caching
+│   │   └── esp.h          - esp drawing, aimbot, radar, player caching
 │   ├── sdk/
 │   │   ├── sdk.h          - game sdk (world to screen, bone reading, visibility)
-│   │   └── offsets.h      - all the game offsets + uworld decryption + exploit offsets
+│   │   └── offsets.h      - all the game offsets + uworld decryption
 │   └── util/
 │       ├── math.h         - vectors, transforms, matrix math
 │       └── settings.h     - default config values for everything
@@ -50,7 +48,7 @@ open the solution in visual studio 2022, select release|x64, and build. you'll n
 
 1. build the project
 2. run the executable as administrator (required for the driver)
-3. the cheet will download and load the driver automatically
+3. the cheat will download and load the driver automatically
 4. launch fortnite and join a match
 5. wait for "press ok in lobby" message
 6. press insert to open the menu and configure settings
@@ -58,16 +56,18 @@ open the solution in visual studio 2022, select release|x64, and build. you'll n
 ## notes
 
 - this is pretty shitcoded but it works so idc
-- offsets will need updating after game updates
-- you can paste anything you want here, requires basic game cheeting knowledge
-- stay cute
+- the visible check uses lastrendertime which is unreliable (doesnt work through player builds, etc)
+- dont use kdmapper please
+- offsets will need updating after major game updates
+- the math is terrifying because i was the worst in my math class
+- you can paste anything you want here, its not supposed to be opened by people with 0 knowledge
 
 ## credits
 
 - dear imgui (https://github.com/ocornut/imgui)
-- me for writing the rest while suffering from schyzophrenia
+- me for writing the rest while suffering from heatstroke apparently
 
-consider joining https://discord.gg/linouservices please <3
+consider joining https://discord.gg/linouservices if you want
 
 ## license
 
