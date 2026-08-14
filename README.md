@@ -18,28 +18,6 @@ the driver itself is downloaded and loaded at runtime from catbox.moe using curl
 
 once the driver is ready, it scans for the fortnite process (fortniteclient-win64-shipping.exe), grabs the cr3 and base address, then creates a transparent directx 11 overlay window that covers the entire screen. the render loop uses imgui for drawing and handles all the esp/aimbot logic per frame.
 
-## project structure
-
-```
-linoufree.sln              - visual studio 2022 solution
-linoufree/
-├── imgui/                 - dear imgui library (dx11 + win32 backend)
-├── src/
-│   ├── entrypoint.cpp     - main entry, driver load, game detection
-│   ├── colors.h           - console color defines
-│   ├── memory/
-│   │   └── driver.h       - driver class + memory class (ioctl communication)
-│   ├── render/
-│   │   ├── render.h       - d3d11 init, overlay, menu ui, render loop
-│   │   └── esp.h          - esp drawing, aimbot, radar, player caching
-│   ├── sdk/
-│   │   ├── sdk.h          - game sdk (world to screen, bone reading, visibility)
-│   │   └── offsets.h      - all the game offsets + uworld decryption
-│   └── util/
-│       ├── math.h         - vectors, transforms, matrix math
-│       └── settings.h     - default config values for everything
-```
-
 ## building
 
 open the solution in visual studio 2022, select release|x64, and build. you'll need the windows sdk and the c++ desktop workload installed. the project already links against d3d11.lib, dxgi.lib, and dwmapi.lib.
