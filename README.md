@@ -1,6 +1,8 @@
-# linoufree
+# linoufree 
 
-a free fortnite external cheat for windows, uses a kernel driver to read/write physical memory and an imgui overlay to render everything. made by [linoucat](https://github.com/linoucat)
+# this is DISCONTINUED and is now an internal, i do not share the source for obvious reasons, if you're interested in buying it please dm @linouservices
+
+a free fortnite external cheat for windows, uses a kernel driver to read/write physical memory and an imgui overlay to render everything. made by [linoucat](https://github.com/linoudev)
 
 ## features
 
